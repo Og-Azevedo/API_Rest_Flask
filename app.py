@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from flask_restful import Api
-from resources.hotel import Hoteis, Hotel
+from resources.hotel import Hoteis, Hotel, HotelReserva
 from resources.usuario import User, UserRegister, UserLogin, UserLogout
 from resources.admin import Admin, AdminRegister, AdminLogin, AdminLogout
 from flask_jwt_extended import JWTManager, get_current_user
@@ -26,15 +26,10 @@ def verifica_blacklist(self, token):
 def token_de_acesso_invalidado(jwt_header, jwt_payload):
     return jsonify({'message':'You have been logged out.'}), 401
 
-# @jwt.user_lookup_loader
-# def is_admin(jwt_header, jwt_payload):
-#     current_user = get_current_user()
-#     print(current_user)
-#     return current_user
-
 
 api.add_resource(Hoteis, '/hoteis')
 api.add_resource(Hotel, '/hoteis/<string:hotel_id>')
+api.add_resource(HotelReserva, '/hoteis/reserva/<string:hotel_id>')
 api.add_resource(User, '/usuarios/<int:user_id>')
 api.add_resource(UserRegister, '/cadastro')
 api.add_resource(UserLogin, '/login')

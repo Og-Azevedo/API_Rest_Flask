@@ -5,6 +5,7 @@ class UserModel(banco.Model):
     __tablename__= 'usuarios'
 
     user_id = banco.Column(banco.Integer, primary_key=True)
+    tipo = banco.Column(banco.String, default= "usuario_simples")
     login = banco.Column(banco.String(40))
     senha = banco.Column(banco.String(40))
 
@@ -17,6 +18,7 @@ class UserModel(banco.Model):
         return {
             'user_id':self.user_id,
             'login':self.login,
+            'tipo':self.tipo
         }
     @classmethod
     def find_user(cls, user_id):
@@ -31,6 +33,10 @@ class UserModel(banco.Model):
         if user:
             return user
         return None
+
+    def update_user(self, login, senha):
+        self.login = login
+        self.senha = senha
 
     def save_user(self):
         banco.session.add(self)

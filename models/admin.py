@@ -7,6 +7,7 @@ class AdminModel(banco.Model):
     __tablename__= 'admins'
 
     admin_id = banco.Column(banco.Integer, primary_key=True)
+    tipo = banco.Column(banco.String, default="usuario_admin")
     login = banco.Column(banco.String(40))
     senha = banco.Column(banco.String(40))
 
@@ -18,6 +19,7 @@ class AdminModel(banco.Model):
     def json(self):
         return {
             'admin_id':self.admin_id,
+            'tipo':self.tipo,
             'login':self.login,
         }
     @classmethod

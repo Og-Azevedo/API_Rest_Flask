@@ -1,4 +1,5 @@
 from sql_alchemy import banco
+from datetime import datetime
 
 class HotelModel(banco.Model):
     __tablename__= 'hoteis'
@@ -8,6 +9,9 @@ class HotelModel(banco.Model):
     estrelas = banco.Column(banco.Float(precision=1))
     diaria = banco.Column(banco.Float(precision=2))
     cidade = banco.Column(banco.String(40))
+    reserva = banco.Column(banco.Integer, default=0)
+    checkin = banco.Column(banco.Date)
+    hospede = banco.Column(banco.String, default="")
 
 
     def __init__(self, hotel_id, nome, estrelas, diaria, cidade):
@@ -16,6 +20,8 @@ class HotelModel(banco.Model):
         self.estrelas = estrelas
         self.diaria = diaria
         self.cidade = cidade
+        # self.reserva = reserva
+        # self.hospede = hospede
 
     def json(self):
         return {
@@ -23,7 +29,10 @@ class HotelModel(banco.Model):
             'nome':self.nome,
             'estrelas':self.estrelas,
             'diaria':self.diaria,
-            'cidade':self.cidade
+            'cidade':self.cidade,
+            'checkin':self.checkin.isoformat(),
+            'reserva':self.reserva,
+            'hospede':self.hospede
         }
     @classmethod
     def find_hotel(cls, hotel_id):
@@ -35,6 +44,12 @@ class HotelModel(banco.Model):
     def save_hotel(self):
         banco.session.add(self)
         banco.session.commit()
+
+    def reservar_quarto(self, num_diarias, hospede, checkin):
+        self.reserva = num_diarias
+        self.hospede = hospede
+        self.checkin = checkin
+        self.save_hotel()
 
     def update_hotel(self, nome, estrelas, diaria, cidade):
         self.nome = nome

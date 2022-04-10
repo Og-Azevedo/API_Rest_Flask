@@ -4,8 +4,6 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt, get_j
 from werkzeug.security import safe_str_cmp
 from blacklist import BLACKLIST
 
-from flask_restful import inputs
-
 
 argumentos = reqparse.RequestParser()
 argumentos.add_argument('login', type=str, required=True, help="The fild 'login' cannot be left blank")
@@ -19,10 +17,25 @@ class User(Resource):
         return {'message': 'User not found.'}, 404
 
     @jwt_required()
+    def put(self, user_id):
+        dados = argumentos.parse_args()
+        usuario_encontrado = UserModel.find_user(user_id)
+        if usuario_encontrado:
+            usuario_encontrado.update_user(**dados)
+            usuario_encontrado.save_user()
+            return usuario_encontrado.json(), 200
+        usuario = UserModel(user_id, **dados)
+        try:
+            usuario.save_user()
+        except:
+            return {'message': 'An internal error ocurred trying to save hotel.'}, 500
+        return usuario.json(), 201
+
+    @jwt_required()
     def delete(self, user_id):
-        id = get_jwt_identity()
-        print(f"ID:{id}")
-        if "admin" in id:
+        tipo_usuario = get_jwt_identity()['tipo']
+        print(f"Tipo usuário:{tipo_usuario}")
+        if "admin" in tipo_usuario:
             user = UserModel.find_user(user_id)
             if user:
                 try:
@@ -55,7 +68,9 @@ class UserLogin(Resource):
 
         if user and safe_str_cmp(user.senha, dados['senha']):
             # token_de_acesso = create_access_token(identity=user.user_id)
-            token_de_acesso = create_access_token(identity= f"{user.user_id}_UserComum")
+            # token_de_acesso = create_access_token(identity= f"{user.user_id}_UserComum")
+            token_de_acesso = create_access_token(identity= user.json())
+
             return {'access_token': token_de_acesso}, 200
         return {'message': "The username or password is incorrect."}, 401
 
@@ -63,9 +78,7 @@ class UserLogout(Resource):
 
     @jwt_required()
     def post(self):
-        id = get_jwt_identity()
-        print(safe_str_cmp(id, "comum"))
+        print(f"Identificador: {get_jwt_identity()}")
         jwt_id = get_jwt()['jti']
         BLACKLIST.add(jwt_id)
-        print(f"USUÁRIO ATUAL JWT ID:{jwt_id}")
         return {'message': 'Logged out successfully!'}, 200

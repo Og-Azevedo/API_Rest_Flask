@@ -48,7 +48,7 @@ class AdminLogin(Resource):
         admin = AdminModel.find_by_login(dados['login'])
 
         if admin and safe_str_cmp(admin.senha, dados['senha']):
-            token_de_acesso = create_access_token(identity=f"{admin.admin_id}_admin")
+            token_de_acesso = create_access_token(identity=admin.json())
             return {'access_token': token_de_acesso}, 200
         return {'message': "The username or password is incorrect."}, 401
 
