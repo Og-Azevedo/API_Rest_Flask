@@ -20,8 +20,11 @@ class Users(Resource):
     @jwt_required()
     def get(self):
         if is_admin():
-            return {'usuarios': [user.json() for user in UserModel.query.all()]}
-        return {'message': 'Você não pode acessar a lista de usuários'}
+            try:
+                return {'usuarios': [user.json() for user in UserModel.query.all()]}
+            except:
+                return {'message': 'Erro interno.'}, 500
+        return {'message': 'Você não pode acessar a lista de usuários'}, 401
 
 class User(Resource):
 
@@ -66,14 +69,17 @@ class User(Resource):
 
 class UserRegister(Resource):
 
+    @jwt_required()
     def post(self): #criar usuario
-        dados = argumentos.parse_args()
-        if UserModel.find_by_login(dados['login']):
-            return {'message': "O usuario '{}' já existe".format(dados['login'])}
+        if is_admin():
+            dados = argumentos.parse_args()
+            if UserModel.find_by_login(dados['login']):
+                return {'message': "O usuario '{}' já existe".format(dados['login'])}
 
-        user = UserModel(**dados)
-        user.save_user()
-        return {'message': "Usuario criado com sucesso!"}, 201
+            user = UserModel(**dados)
+            user.save_user()
+            return {'message': "Usuario criado com sucesso!"}, 201
+        return {'message': "Você não pode criar novos usuários!"}, 201
 
 class UserLogin(Resource):
 
@@ -95,4 +101,4 @@ class UserLogout(Resource):
     def post(self): #fazer logout
         jwt_id = get_jwt()['jti']
         BLACKLIST.add(jwt_id)
-        return {'message': 'Logged feito com sucesso!'}, 200
+        return {'message': 'Loggout feito com sucesso!'}, 200

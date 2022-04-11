@@ -42,23 +42,26 @@ class Admin(Resource):
                 try:
                     admin.delete_admin()
                 except:
-                    return {'message': 'An error ocurred trying to delet user.'}, 500
-                return {'message': 'User deleted'}
-            return {'message': 'User not found'}, 404
+                    return {'message': 'Ocorreu um erro ao tentar deletar.'}, 500
+                return {'message': 'Usuário deletado'}
+            return {'message': 'Usuário não encontrado'}, 404
         return {'message': 'Você não pode deletar administradores'}, 401
 
 
 class AdminRegister(Resource):
 
+    @jwt_required()
     def post(self):
-        dados = argumentos.parse_args()
+        if is_admin():
+            dados = argumentos.parse_args()
 
-        if AdminModel.find_by_login(dados['login']):
-            return {'message': "The login '{}' already exists".format(dados['login'])}
+            if AdminModel.find_by_login(dados['login']):
+                return {'message': "Esse login '{}' já existe, tente outro!".format(dados['login'])}
 
-        admin = AdminModel(**dados)
-        admin.save_admin()
-        return {'message': "User created successfully!"}, 201
+            admin = AdminModel(**dados)
+            admin.save_admin()
+            return {'message': "Admin criado com sucesso!"}, 201
+        return {'message': "Somente administradores podem cadastrar novos admins!"}, 201
 
 class AdminLogin(Resource):
 
@@ -70,7 +73,7 @@ class AdminLogin(Resource):
         if admin and safe_str_cmp(admin.senha, dados['senha']):
             token_de_acesso = create_access_token(identity=admin.json())
             return {'access_token': token_de_acesso}, 200
-        return {'message': "The username or password is incorrect."}, 401
+        return {'message': "Login e senha incorretos."}, 401
 
 class AdminLogout(Resource):
 
@@ -78,4 +81,4 @@ class AdminLogout(Resource):
     def post(self):
         jwt_id = get_jwt()['jti']
         BLACKLIST.add(jwt_id)
-        return {'message': 'Logged out successfully!'}, 200
+        return {'message': 'Logout feito com sucesso!'}, 200

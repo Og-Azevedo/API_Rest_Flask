@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse, inputs
 from models.hotel import HotelModel
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, decode_token
-import json
+
 
 
 def is_admin():
@@ -12,36 +12,48 @@ def is_admin():
 
 
 class Hoteis(Resource):
+
+    @jwt_required()
     def get(self):
-        return {'hoteis': [hotel.json() for hotel in HotelModel.query.all()]}
+        try:
+            return {'hoteis': [hotel.json() for hotel in HotelModel.query.all()]}
+        except:
+            return {'message': 'Erro interno.'}, 500
+
+
 
 class Hotel(Resource):
     argumentos = reqparse.RequestParser()
-    argumentos.add_argument('nome', type=str, required=True, help="The fild 'nome' cannot be left blank")
-    argumentos.add_argument('estrelas', type=float, required=True, help="The fild 'estrelas' cannot be left blank")
+    argumentos.add_argument('nome', type=str, required=True, help="O campo 'nome' não pode ser deixado em branco")
+    argumentos.add_argument('estrelas', type=float, required=True, help="O campo 'estrelas' não pode ser deixado em branco")
     argumentos.add_argument('diaria')
     argumentos.add_argument('cidade')
 
-
+    @jwt_required()
     def get(self, hotel_id):
-        hotel = HotelModel.find_hotel(hotel_id)
-        if hotel:
-            return hotel.json()
-        return {'message': 'Hotel not found.'}, 404
+        if is_admin():
+            hotel = HotelModel.find_hotel(hotel_id)
+            if hotel:
+                try:
+                    return hotel.json()
+                except:
+                    return {'message': 'Erro interno.'}, 500
+            return {'message': 'Hootel não encontrado.'}, 404
+        return {'message': 'Você não pode acessar informações dos hoteis.'}, 401
 
     @jwt_required() #criar novos hoteis
     def post(self, hotel_id):
         if is_admin():
             if HotelModel.find_hotel(hotel_id):
-                return {"message": "Hotel id '{}' already exists".format(hotel_id)}, 400
+                return {"message": "Hotel id '{}' já existe".format(hotel_id)}, 400
             dados = Hotel.argumentos.parse_args()
             hotel = HotelModel(hotel_id,**dados)
             try:
                 hotel.save_hotel()
             except:
-                return {'message': 'An internal error ocurred trying to save hotel.'}, 500
+                return {'message': 'Um erro interno ocorreu ao tentar criar esse hotel.'}, 500
             return hotel.json()
-        return {'message': 'Only administrators can create new hotels.'}, 401
+        return {'message': 'Apenas adminitradores podem criar hotel.'}, 401
 
     @jwt_required() #alterar dados de hoteis
     def put(self, hotel_id):
@@ -56,9 +68,9 @@ class Hotel(Resource):
             try:
                 hotel.save_hotel()
             except:
-                return {'message': 'An internal error ocurred trying to save hotel.'}, 500
+                return {'message': 'Um erro interno ocorreu ao tentar editar esse hotel.'}, 500
             return hotel.json(), 201
-        return {'message': 'Only administrators can edit hotels.'}, 401
+        return {'message': 'Apenas administradores podem editar hotels.'}, 401
 
     @jwt_required() #deletar hoteis
     def delete(self, hotel_id):
@@ -68,10 +80,10 @@ class Hotel(Resource):
                 try:
                     hotel.delete_hotel()
                 except:
-                    return {'message': 'An error ocurred trying to delet hotel.'}, 500
-                return {'message': 'Hotel deleted'}
-            return {'message': 'Hotel not found'}, 404
-        return {'message': 'Only administrators can create new hotels.'}, 401
+                    return {'message': 'Um erro ocorreu ao tentar deletar esse hotel.'}, 500
+                return {'message': 'Hotel deletado com sucesso.'}
+            return {'message': 'Hotel não encontrado'}, 404
+        return {'message': 'Apenas administradores podem criar hoteis.'}, 401
 
 
 class HotelReserva(Resource):
@@ -90,9 +102,9 @@ class HotelReserva(Resource):
             try:
                 hotel.reservar_quarto(hospede, dados['checkin'], dados['checkout'])
             except:
-                return {'message': 'An error ocurred trying to reserv hotel.'}, 500
+                return {'message': 'Ocorreu um erro ao tentar encontrar o hotel.'}, 500
             return {'message': 'Hotel reservado com sucesso'}
-        return {'message': 'Hotel not found'}, 404
+        return {'message': 'Hotel não encontrado'}, 404
 
 
 

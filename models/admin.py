@@ -1,7 +1,5 @@
-import sqlalchemy
-
 from sql_alchemy import banco
-from sqlalchemy import Boolean
+
 
 class AdminModel(banco.Model):
     __tablename__= 'admins'

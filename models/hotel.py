@@ -1,5 +1,5 @@
 from sql_alchemy import banco
-from datetime import datetime
+
 
 class HotelModel(banco.Model):
     __tablename__= 'hoteis'
@@ -21,8 +21,7 @@ class HotelModel(banco.Model):
         self.estrelas = estrelas
         self.diaria = diaria
         self.cidade = cidade
-        # self.reserva = reserva
-        # self.hospede = hospede
+
 
     def json(self):
         return {
