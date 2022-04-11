@@ -5,8 +5,13 @@ from resources.usuario import Users, User, UserRegister, UserLogin, UserLogout
 from resources.admin import Admins, Admin, AdminRegister, AdminLogin, AdminLogout
 from flask_jwt_extended import JWTManager, get_current_user
 from blacklist import BLACKLIST
+from sql_alchemy import banco
+
+
+
 
 app = Flask(__name__)
+banco.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///banco.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = "String_segredo"
@@ -42,8 +47,10 @@ api.add_resource(AdminLogin, '/admins/login')
 api.add_resource(AdminLogout, '/admins/logout')
 
 
+# if __name__ == '__main__':
+#     from sql_alchemy import banco
+#     banco.init_app(app)
+#     app.run(host="0.0.0.0", port=5000)
+
 if __name__ == '__main__':
-    from sql_alchemy import banco
-    banco.init_app(app)
-    # app.run(debug=True)
     app.run(host="0.0.0.0", port=5000)
