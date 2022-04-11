@@ -21,24 +21,15 @@ class Hotel(Resource):
     argumentos.add_argument('estrelas', type=float, required=True, help="The fild 'estrelas' cannot be left blank")
     argumentos.add_argument('diaria')
     argumentos.add_argument('cidade')
-    # argumentos.add_argument('reserva')
-    # argumentos.add_argument('hospede')
 
 
-    # def find_hotel(hotel_id):
-    #     for hotel in HotelModel.query.all():
-    #         if hotel['hotel_id'] == hotel_id:
-    #             return hotel
-    #     return None
-
-#CRUD
     def get(self, hotel_id):
         hotel = HotelModel.find_hotel(hotel_id)
         if hotel:
             return hotel.json()
         return {'message': 'Hotel not found.'}, 404
 
-    @jwt_required()
+    @jwt_required() #criar novos hoteis
     def post(self, hotel_id):
         if is_admin():
             if HotelModel.find_hotel(hotel_id):
@@ -52,7 +43,7 @@ class Hotel(Resource):
             return hotel.json()
         return {'message': 'Only administrators can create new hotels.'}, 401
 
-    @jwt_required()
+    @jwt_required() #alterar dados de hoteis
     def put(self, hotel_id):
         if is_admin():
             dados = Hotel.argumentos.parse_args()
@@ -69,7 +60,7 @@ class Hotel(Resource):
             return hotel.json(), 201
         return {'message': 'Only administrators can edit hotels.'}, 401
 
-    @jwt_required()
+    @jwt_required() #deletar hoteis
     def delete(self, hotel_id):
         if is_admin():
             hotel = HotelModel.find_hotel(hotel_id)
@@ -82,6 +73,7 @@ class Hotel(Resource):
             return {'message': 'Hotel not found'}, 404
         return {'message': 'Only administrators can create new hotels.'}, 401
 
+
 class HotelReserva(Resource):
 
     @jwt_required()
@@ -89,16 +81,16 @@ class HotelReserva(Resource):
         hospede = get_jwt_identity()['login']
         # print(f"Tipo: {get_jwt_identity()}")
         argumentos = reqparse.RequestParser()
-        argumentos.add_argument('reserva', type=str, required=True, help="The fild 'reserva' cannot be left blank")
         argumentos.add_argument('checkin', type=inputs.date , required=True, help="The fild 'reserva' cannot be left blank")
+        argumentos.add_argument('checkout', type=inputs.date , required=True, help="The fild 'reserva' cannot be left blank")
         dados = argumentos.parse_args()
 
         hotel = HotelModel.find_hotel(hotel_id)
         if hotel:
             try:
-                hotel.reservar_quarto(dados['reserva'],hospede, dados['checkin'])
+                hotel.reservar_quarto(hospede, dados['checkin'], dados['checkout'])
             except:
-                return {'message': 'An error ocurred trying to delet hotel.'}, 500
+                return {'message': 'An error ocurred trying to reserv hotel.'}, 500
             return {'message': 'Hotel reservado com sucesso'}
         return {'message': 'Hotel not found'}, 404
 

@@ -9,8 +9,9 @@ class HotelModel(banco.Model):
     estrelas = banco.Column(banco.Float(precision=1))
     diaria = banco.Column(banco.Float(precision=2))
     cidade = banco.Column(banco.String(40))
-    reserva = banco.Column(banco.Integer, default=0)
-    checkin = banco.Column(banco.Date)
+    # reserva = banco.Column(banco.Integer, default=0)
+    checkin = banco.Column(banco.Date, server_default=banco.func.now())
+    checkout = banco.Column(banco.Date, server_default=banco.func.now())
     hospede = banco.Column(banco.String, default="")
 
 
@@ -31,7 +32,8 @@ class HotelModel(banco.Model):
             'diaria':self.diaria,
             'cidade':self.cidade,
             'checkin':self.checkin.isoformat(),
-            'reserva':self.reserva,
+            'checkout':self.checkout.isoformat(),
+            # 'reserva':self.reserva,
             'hospede':self.hospede
         }
     @classmethod
@@ -45,17 +47,17 @@ class HotelModel(banco.Model):
         banco.session.add(self)
         banco.session.commit()
 
-    def reservar_quarto(self, num_diarias, hospede, checkin):
-        self.reserva = num_diarias
+    def reservar_quarto(self, hospede, checkin, checkout):
         self.hospede = hospede
         self.checkin = checkin
+        self.checkout = checkout
         self.save_hotel()
 
-    def update_hotel(self, nome, estrelas, diaria, cidade):
+    def update_hotel(self, nome, estrelas, cidade, diaria):
         self.nome = nome
         self.estrelas = estrelas
-        self.diaria = diaria
         self.cidade = cidade
+        self.diaria = diaria
 
     def delete_hotel(self):
         banco.session.delete(self)
